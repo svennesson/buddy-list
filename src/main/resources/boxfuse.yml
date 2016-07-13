@@ -1,0 +1,35 @@
+server:
+  applicationContextPath: /api
+
+database:
+  # the name of your JDBC driver
+  driverClass: org.postgresql.Driver
+
+  # the username
+  user: ${BOXFUSE_DATABASE_USER}
+
+  # the password
+  password: ${BOXFUSE_DATABASE_PASSWORD}
+
+  # the JDBC URL
+  url: ${BOXFUSE_DATABASE_URL}
+
+  # any properties specific to your JDBC driver:
+  properties:
+    charSet: UTF-8
+    hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate.hbm2ddl.auto: create
+    hibernate.show_sql: true
+    hibernate.format_sql: true
+
+  # the maximum amount of time to wait on an empty pool before throwing an exception
+  maxWaitForConnection: 1s
+
+  # the minimum number of connections to keep open
+  minSize: 8
+
+  # the maximum number of connections to keep open
+  maxSize: 32
+
+  # whether or not idle connections should be validated
+  checkConnectionWhileIdle: false
