@@ -76,4 +76,11 @@ public class BuddyListResource {
     public Response updateItem(@PathParam("listId") final Long listId, @PathParam("itemId") final Long itemId, @Valid final Item item) {
         return Response.ok(listService.updateItem(listId, itemId, item)).build();
     }
+
+    @PUT
+    @UnitOfWork
+    @Path("{listId}/items/{itemId}/checked")
+    public Response toggleItemChecked(@PathParam("listId") final Long listId, @PathParam("itemId") final Long itemId) {
+        return Response.ok(listService.toggleItemChecked(listId, itemId)).build();
+    }
 }

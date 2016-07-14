@@ -7,13 +7,14 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
 import javax.validation.constraints.Max;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Table(name = "users")
 @Entity
-public class User extends AbstractEntity{
+public class User extends AbstractEntity implements Principal{
 
     @NotEmpty
     @Column(nullable = false)

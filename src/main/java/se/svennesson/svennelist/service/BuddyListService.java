@@ -62,13 +62,11 @@ public class BuddyListService {
         final BuddyList list = buddyListDao.findById(listId);
         isValidEntity(list, listId);
 
-        final Item itemInDB = itemDao.findById(itemId);
+        Item itemInDB = itemDao.findById(itemId);
         isValidEntity(itemInDB, itemId);
+        itemInDB = cloneItem(itemInDB, item);
 
-        itemInDB.setChecked(item.isChecked());
-        itemInDB.setPrice(item.isChecked());
-
-        return itemDao.saveItem(item);
+        return itemDao.saveItem(itemInDB);
     }
 
     public void deleteListById(Long listId) {
@@ -88,5 +86,26 @@ public class BuddyListService {
         isValidEntity(list, listId);
 
         list.getItems().stream().forEach(item -> itemDao.deleteById(item.getClass(), item.getId()));
+    }
+
+    public Object toggleItemChecked(Long listId, Long itemId) {
+        final BuddyList list = buddyListDao.findById(listId);
+        isValidEntity(list, listId);
+
+        final Item item = itemDao.findById(itemId);
+        isValidEntity(item, itemId);
+        item.setChecked(!item.isChecked());
+
+        return itemDao.saveItem(item);
+    }
+
+    private Item cloneItem(final Item persistedItem, final Item newItem) {
+        persistedItem.setChecked(newItem.isChecked());
+        persistedItem.setPrice(newItem.getPrice());
+        persistedItem.setQuantity(newItem.getQuantity());
+        persistedItem.setStore(newItem.getStore());
+        persistedItem.setText(newItem.getText());
+
+        return persistedItem;
     }
 }
