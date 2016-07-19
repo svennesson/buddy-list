@@ -18,10 +18,10 @@ public class AccessToken extends AbstractEntity{
     @Column(nullable = false, name = "date_issued")
     private final DateTime dateIssued;
 
-    public AccessToken(Long userId, UUID token, DateTime dateIssued) {
+    public AccessToken(Long userId, UUID token) {
         this.userId = userId;
         this.token = token;
-        this.dateIssued = dateIssued;
+        this.dateIssued = DateTime.now();
     }
 
     public Long getUserId() {

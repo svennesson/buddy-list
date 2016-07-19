@@ -1,6 +1,7 @@
 package se.svennesson.svennelist.resources;
 
 import io.dropwizard.hibernate.UnitOfWork;
+import se.svennesson.svennelist.exception.EntityNotFoundException;
 import se.svennesson.svennelist.model.User;
 import se.svennesson.svennelist.service.UserService;
 
@@ -30,13 +31,8 @@ public class UserResource {
     @UnitOfWork
     @Path("{userId}")
     public Response getUser(@PathParam("userId") final Long id) {
-        return Response.ok(userService.getUserById(id)).build();
-    }
-
-    @POST
-    @UnitOfWork
-    public Response createUser(@Valid User user) {
-        final User persistedUser = userService.createUser(user);
-        return Response.ok(persistedUser).build();
+        final User user = userService.getUserById(id)
+                .orElseThrow(EntityNotFoundException::new);
+        return Response.ok(user).build();
     }
 }

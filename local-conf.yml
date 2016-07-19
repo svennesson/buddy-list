@@ -1,15 +1,22 @@
 server:
   applicationContextPath: /api
 
+  applicationConnectors:
+      - type: http
+        port: 9000
+  adminConnectors:
+      - type: http
+        port: 9001
+
 database:
   # the name of your JDBC driver
   driverClass: org.postgresql.Driver
 
   # the username
-  user: postgres
+  user: marcus
 
   # the password
-  password: postgres
+  password: marcus
 
   # the JDBC URL
   url: 'jdbc:postgresql:svennelist'

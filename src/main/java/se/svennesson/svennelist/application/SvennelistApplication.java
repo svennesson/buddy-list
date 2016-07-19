@@ -2,6 +2,9 @@ package se.svennesson.svennelist.application;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.dropwizard.Application;
+import io.dropwizard.auth.AuthDynamicFeature;
+import io.dropwizard.auth.AuthValueFactoryProvider;
+import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.db.DataSourceFactory;
@@ -11,19 +14,23 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.flywaydb.core.Flyway;
-import org.reflections.Reflections;
-import org.skife.jdbi.v2.DBI;
-import se.svennesson.svennelist.config.DBIFactory;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
+import se.svennesson.svennelist.auth.BuddyListAuthenticator;
+import se.svennesson.svennelist.auth.BuddyListAuthorizer;
 import se.svennesson.svennelist.config.SvennelistConfiguration;
 import se.svennesson.svennelist.dao.BuddyListDao;
 import se.svennesson.svennelist.dao.ItemDao;
+import se.svennesson.svennelist.dao.TokenDAO;
 import se.svennesson.svennelist.dao.UserDao;
 import se.svennesson.svennelist.model.BuddyList;
 import se.svennesson.svennelist.model.Item;
 import se.svennesson.svennelist.model.User;
 import se.svennesson.svennelist.resources.BuddyListResource;
+import se.svennesson.svennelist.resources.OAuth2Resource;
+import se.svennesson.svennelist.resources.RegisterResource;
 import se.svennesson.svennelist.resources.UserResource;
 import se.svennesson.svennelist.service.BuddyListService;
+import se.svennesson.svennelist.service.TokenService;
 import se.svennesson.svennelist.service.UserService;
 
 import javax.servlet.DispatcherType;
@@ -71,25 +78,33 @@ public class SvennelistApplication extends Application<SvennelistConfiguration> 
         corsFilter.setInitParameter(ALLOWED_HEADERS_PARAM, "Origin, Content-Type, Accept, Authorization");
         corsFilter.setInitParameter(ALLOW_CREDENTIALS_PARAM, "true");
 
-        //Reflections
-        final Reflections reflections = new Reflections("se.svennesson.svennelist");
-
-        //JDBI
-        final DBIFactory factory = new DBIFactory(reflections);
-        final DBI jdbi = factory.build(environment, configuration.getDataSourceFactory(), "postgresql");
-
         //DAO
         final UserDao userDao = new UserDao(hibernate.getSessionFactory());
         final BuddyListDao buddyListDao = new BuddyListDao(hibernate.getSessionFactory());
         final ItemDao itemDao = new ItemDao(hibernate.getSessionFactory());
+        final TokenDAO tokenDao = new TokenDAO(hibernate.getSessionFactory());
 
         //Service
         final UserService userService = new UserService(userDao);
         final BuddyListService buddyListService = new BuddyListService(buddyListDao, itemDao);
+        final TokenService tokenService = new TokenService(tokenDao, userService);
+
+        //Auth
+        environment.jersey().register(new AuthDynamicFeature(
+                new OAuthCredentialAuthFilter.Builder<User>()
+                .setAuthenticator(new BuddyListAuthenticator(userService, tokenService))
+                .setAuthorizer(new BuddyListAuthorizer())
+                .setPrefix("Bearer")
+                .buildAuthFilter()));
+
+        environment.jersey().register(RolesAllowedDynamicFeature.class);
+        environment.jersey().register(new AuthValueFactoryProvider.Binder<>(User.class));
 
         //Jersey
         environment.jersey().register(new UserResource(userService));
         environment.jersey().register(new BuddyListResource(buddyListService));
+        environment.jersey().register(new RegisterResource(userService));
+        environment.jersey().register(new OAuth2Resource(tokenService));
 
     }
 }

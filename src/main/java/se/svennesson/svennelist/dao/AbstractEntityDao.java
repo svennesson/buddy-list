@@ -5,14 +5,16 @@ import org.hibernate.Query;
 import org.hibernate.SessionFactory;
 import se.svennesson.svennelist.model.AbstractEntity;
 
+import java.util.Optional;
+
 public class AbstractEntityDao<T extends AbstractEntity> extends AbstractDAO<T> {
 
     public AbstractEntityDao(SessionFactory sessionFactory) {
         super(sessionFactory);
     }
 
-    public T findById(Long id) {
-        return get(id);
+    public Optional<T> findById(Long id) {
+        return Optional.ofNullable(get(id));
     }
 
     public T saveItem(T entity) {
